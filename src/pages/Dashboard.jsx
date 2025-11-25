@@ -4,6 +4,7 @@ import MetricCard from '../components/MetricCard'
 import LineChart from '../components/LineChart'
 import GaugeChart from '../components/GaugeChart'
 import StatusIndicator from '../components/StatusIndicator'
+import RecommendationCard from '../components/RecommendationCard'
 import { latestReadings, latest } from '../utils/mockData'
 import api from '../utils/api'
 
@@ -61,6 +62,11 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* Recommendation card */}
+          <div className="w-full max-w-2xl mb-4">
+            <RecommendationCard co2={last?.co2 ?? 0} />
+          </div>
+
           {/* 24h line chart below the status */}
           <div className="w-full">
             <LineChart data={data} />
@@ -70,38 +76,6 @@ export default function Dashboard() {
         {/* Right column: Gauge with legend */}
         <div className="lg:col-span-1 flex justify-center">
           <GaugeChart value={last?.co2 ?? 0} />
-        </div>
-      </div>
-
-      <div className="card">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold">Histórico (últimas 20 lecturas)</h3>
-          <div className="flex items-center gap-3">
-            <div className="text-sm text-slate-500">Mostrando {displayed.length} de {latest20.length}</div>
-            <button onClick={() => setShowAll(s => !s)} className="px-3 py-1 rounded bg-slate-100 dark:bg-slate-700 text-sm">
-              {showAll ? 'Mostrar 5' : 'Mostrar 20'}
-            </button>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="text-slate-600 text-sm">
-                <th className="p-2">Timestamp</th>
-                <th className="p-2">CO2 (ppm)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.isArray(displayed) && displayed.length > 0 ? displayed.map((r, i) => (
-                <tr key={i} className="border-t">
-                  <td className="p-2 text-sm">{new Date(r?.timestamp ?? r?.time ?? r?.window_end ?? Date.now()).toLocaleString()}</td>
-                  <td className="p-2 font-medium">{r?.co2 ?? r?.value ?? r?.co2_avg_ppm ?? '—'}</td>
-                </tr>
-              )) : (
-                <tr><td className="p-2" colSpan={2}>No hay lecturas disponibles.</td></tr>
-              )}
-            </tbody>
-          </table>
         </div>
       </div>
     </div>

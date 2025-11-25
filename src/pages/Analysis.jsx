@@ -70,50 +70,92 @@ export default function Analysis() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 gap-4 mb-4">
         <div className="card">
-          <h3 className="font-semibold mb-2">Mapa de calor (hora del día vs día)</h3>
-          <div style={{ width: '100%', height: 300 }}>
-            <ResponsiveContainer>
-              <ScatterChart>
-                <CartesianGrid />
-                <XAxis type="number" dataKey="x" name="hora" unit="h" />
-                <YAxis reversed type="number" dataKey="y" name="día" />
-                <ZAxis dataKey="co2" range={[50, 500]} />
-                <Tooltip cursor={{ strokeDasharray: '3 3' }} formatter={(value, name) => [value, 'CO2']} labelFormatter={(label) => `ts: ${label.ts}`} />
-                <Scatter data={scatter} fill="#0ea5a4" />
-              </ScatterChart>
-            </ResponsiveContainer>
+          <h3 className="font-semibold mb-4">Mapa de calor - CO2 por hora del día</h3>
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span>Nivel de CO2 (ppm)</span>
+              <div className="flex gap-2">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded" style={{ background: '#10b981' }}></div>
+                  <span>Bajo (&lt;600)</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded" style={{ background: '#f59e0b' }}></div>
+                  <span>Medio (600-1000)</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded" style={{ background: '#ef4444' }}></div>
+                  <span>Alto (&gt;1000)</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div className="card">
-          <h3 className="font-semibold mb-2">Eventos (CO2 &gt; 1000 ppm)</h3>
-          <div className="text-sm text-slate-500 mb-2">Sensor: sensor-1</div>
-          <div className="overflow-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="text-slate-600">
-                  <th className="p-2">Inicio</th>
-                  <th className="p-2">Fin</th>
-                  <th className="p-2">Duración (min)</th>
-                  <th className="p-2">Pico (ppm)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {events.length === 0 && (
-                  <tr><td className="p-2" colSpan={4}>No hay eventos en el rango seleccionado.</td></tr>
-                )}
-                {events.map((e, i) => (
-                  <tr key={i} className="border-t">
-                    <td className="p-2">{formatDate(e.start)}</td>
-                    <td className="p-2">{formatDate(e.end)}</td>
-                    <td className="p-2">{e.durationMinutes}</td>
-                    <td className="p-2">{e.maxValue}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Professional heatmap grid */}
+          <div className="overflow-x-auto">
+            <div className="min-w-full bg-slate-50 dark:bg-slate-900 p-4 rounded">
+              <div className="flex gap-1">
+                {/* Y-axis labels (días) */}
+                <div className="flex flex-col gap-1 pr-2">
+                  <div className="h-6 flex items-center text-xs font-semibold text-slate-500">Día</div>
+                  {Array.from({ length: Math.max(...scatter.map(s => s.y), 0) + 1 }).map((_, i) => (
+                    <div key={i} className="h-6 flex items-center text-xs text-slate-500">
+                      {i === 0 ? 'Hoy' : i === 1 ? 'Ayer' : `-${i}d`}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Heatmap grid */}
+                <div className="flex-1 flex flex-col gap-1">
+                  {/* X-axis labels (horas) */}
+                  <div className="flex gap-1 mb-2">
+                    {Array.from({ length: 24 }).map((_, h) => (
+                      <div key={h} className="flex-1 text-center text-xs text-slate-500 font-semibold" style={{ minWidth: '20px' }}>
+                        {h}h
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Grid rows */}
+                  {Array.from({ length: Math.max(...scatter.map(s => s.y), 0) + 1 }).map((_, dayIdx) => (
+                    <div key={dayIdx} className="flex gap-1">
+                      {Array.from({ length: 24 }).map((_, hourIdx) => {
+                        const point = scatter.find(s => s.x === hourIdx && s.y === dayIdx)
+                        const co2 = point?.co2 ?? 0
+                        let bgColor = '#e5e7eb' // empty cell
+                        if (co2 > 0) {
+                          if (co2 <= 600) bgColor = '#10b981'
+                          else if (co2 <= 1000) bgColor = '#f59e0b'
+                          else bgColor = '#ef4444'
+                        }
+                        return (
+                          <div
+                            key={`${dayIdx}-${hourIdx}`}
+                            className="flex-1 h-6 rounded cursor-pointer hover:opacity-75 transition relative group"
+                            style={{ background: bgColor, minWidth: '20px' }}
+                            title={point ? `${co2} ppm` : 'Sin datos'}
+                          >
+                            {/* Tooltip */}
+                            {point && (
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-slate-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none">
+                                {point.x}:00 - {co2} ppm
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900 rounded text-sm text-blue-800 dark:text-blue-200">
+            <strong>Interpretación:</strong> Cada celda representa una hora. El color indica el nivel de CO2 en esa hora.
+            Más datos disponibles en los últimos {range} días.
           </div>
         </div>
       </div>

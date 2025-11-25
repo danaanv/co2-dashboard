@@ -31,6 +31,7 @@ export default function NavBar() {
           <div className="hidden md:flex items-center gap-3">
             <Link to="/" className={`${active('/')}`}>Dashboard</Link>
             <Link to="/analysis" className={`${active('/analysis')}`}>Análisis</Link>
+            <Link to="/historico" className={`${active('/historico')}`}>Histórico</Link>
             <Link to="/alerts" className={`${active('/alerts')}`}>Alertas</Link>
           </div>
         </div>
