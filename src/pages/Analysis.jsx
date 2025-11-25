@@ -39,6 +39,12 @@ export default function Analysis() {
     return { x: dt.getHours(), y: Math.floor((new Date() - dt) / (24 * 60 * 60 * 1000)), co2, ts }
   })
 
+  // calculate average CO2
+  const chartData = Array.isArray(data) ? data.map(d => ({ time: d.time || d.timestamp || d.window_end, CO2: (()=>{ const v = Number(d?.co2 ?? d?.value ?? d?.co2_avg_ppm); return Number.isFinite(v) ? v : null})() })) : []
+  const avgCo2 = chartData.length > 0
+    ? Math.round(chartData.reduce((sum, d) => sum + (d.CO2 || 0), 0) / chartData.length)
+    : 0
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">Histórico y Análisis</h2>
@@ -56,15 +62,15 @@ export default function Analysis() {
         </div>
         <div style={{ width: '100%', height: 320 }}>
           <ResponsiveContainer>
-            <ReLineChart data={Array.isArray(data) ? data.map(d => ({ time: d.time || d.timestamp || d.window_end, CO2: (()=>{ const v = Number(d?.co2 ?? d?.value ?? d?.co2_avg_ppm); return Number.isFinite(v) ? v : null})() })) : []}>
+            <ReLineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="time" tickFormatter={(t) => new Date(t).toLocaleDateString()} />
               <YAxis />
               <Tooltip labelFormatter={(t) => new Date(t).toLocaleString()} />
               <Legend />
-              <Line type="monotone" dataKey="CO2" stroke="#0ea5a4" dot={false} />
-              {/* umbral crítico */}
-              <Line isAnimationActive={false} type="monotone" dataKey={() => 1000} stroke="#ef4444" strokeDasharray="5 5" />
+              <Line type="monotone" dataKey="CO2" stroke="#0ea5a4" dot={false} name="CO2" />
+              {/* Línea de promedio */}
+              <Line isAnimationActive={false} type="monotone" dataKey={() => avgCo2} stroke="#ef4444" strokeDasharray="5 5" name={`Promedio: ${avgCo2} ppm`} />
             </ReLineChart>
           </ResponsiveContainer>
         </div>

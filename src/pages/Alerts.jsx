@@ -7,7 +7,6 @@ function formatDate(ts) {
 
 export default function Alerts() {
   const data = generateMockData(24)
-  const latest20 = latestReadings(data, 20)
   const events = computeEvents(data, 1000)
 
   const totalEvents = events.length
@@ -20,31 +19,19 @@ export default function Alerts() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <div className="card">
-          <div className="text-sm text-slate-500">Eventos (CO2 &gt; 1000 ppm)</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Eventos (CO2 &gt; 1000 ppm)</div>
           <div className="text-3xl font-bold mt-2">{totalEvents}</div>
-          <div className="text-sm text-slate-500 mt-2">Mayor duración: {longest} min</div>
-          <div className="text-sm text-slate-500">Último evento: {lastEvent ? formatDate(lastEvent.end) : '—'}</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300 mt-2">Mayor duración: {longest} min</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Último evento: {lastEvent ? formatDate(lastEvent.end) : '—'}</div>
         </div>
 
         <div className="card lg:col-span-2">
-          <h3 className="font-semibold mb-3">Tabla histórica (últimas 20 lecturas)</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="text-slate-600 text-sm">
-                  <th className="p-2">Timestamp</th>
-                  <th className="p-2">CO2 (ppm)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {latest20.map((r, i) => (
-                  <tr key={i} className="border-t">
-                    <td className="p-2 text-sm">{formatDate(r.timestamp)}</td>
-                    <td className="p-2 font-medium">{r.co2}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Resumen de eventos</div>
+          <div className="text-lg font-semibold mt-2">
+            {totalEvents === 0 ? 'Sin eventos detectados' : `${totalEvents} evento${totalEvents !== 1 ? 's' : ''} detectado${totalEvents !== 1 ? 's' : ''}`}
+          </div>
+          <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+            Los eventos se muestran en el detalle abajo.
           </div>
         </div>
       </div>

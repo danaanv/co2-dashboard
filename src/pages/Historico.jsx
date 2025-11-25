@@ -58,7 +58,7 @@ export default function Historico() {
       if (rowDate > to) return false
     }
     if (searchCo2) {
-      const co2Val = parseInt(searchCo2)
+      const co2Val = parseFloat(searchCo2)
       if (isNaN(co2Val)) return true
       if (row.co2 !== co2Val) return false
     }
