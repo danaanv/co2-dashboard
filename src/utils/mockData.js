@@ -3,29 +3,18 @@ function randomBetween(min, max) {
   return Math.round(Math.random() * (max - min) + min)
 }
 
-// Genera `hours` lecturas (1 por hora) para un sensor individual
-export function generateSensorData(hours = 24) {
+// Genera `hours` lecturas (1 por hora) para un único sensor (mock)
+export function generateMockData(hours = 24) {
   const now = new Date()
   const data = []
   for (let i = hours - 1; i >= 0; i--) {
     const ts = new Date(now.getTime() - i * 60 * 60 * 1000)
     data.push({
       timestamp: ts.toISOString(),
-      co2: randomBetween(400, 1800),
-      temp: (Math.random() * (28 - 18) + 18).toFixed(1),
-      hum: randomBetween(30, 70)
+      co2: randomBetween(400, 1800)
     })
   }
   return data
-}
-
-// Genera datos para múltiples sensores
-export function generateMultiSensorData(sensorCount = 3, hours = 24) {
-  const out = {}
-  for (let s = 1; s <= sensorCount; s++) {
-    out[`sensor-${s}`] = generateSensorData(hours)
-  }
-  return out
 }
 
 // Retorna las últimas `n` lecturas (más recientes primero)
@@ -73,8 +62,7 @@ export function computeEvents(data, threshold = 1000) {
 }
 
 export default {
-  generateSensorData,
-  generateMultiSensorData,
+  generateMockData,
   latestReadings,
   latest,
   computeEvents

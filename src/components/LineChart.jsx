@@ -9,9 +9,7 @@ function formatTime(ts) {
 export default function LineChart({ data }) {
   const chartData = data.map(d => ({
     time: formatTime(d.timestamp),
-    CO2: d.co2,
-    Temp: parseFloat(d.temp),
-    Hum: d.hum
+    CO2: d.co2
   }))
 
   return (
@@ -25,8 +23,6 @@ export default function LineChart({ data }) {
           <Tooltip />
           <Legend />
           <Line type="monotone" dataKey="CO2" stroke="#0ea5a4" dot={false} />
-          <Line type="monotone" dataKey="Temp" stroke="#ef4444" dot={false} />
-          <Line type="monotone" dataKey="Hum" stroke="#3b82f6" dot={false} />
         </ReLineChart>
       </ResponsiveContainer>
     </div>

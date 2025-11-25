@@ -1,28 +1,42 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ResponsiveContainer, LineChart as ReLineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ScatterChart, Scatter, ZAxis } from 'recharts'
-import { generateSensorData, computeEvents } from '../utils/mockData'
+import api from '../utils/api'
 
 function formatDate(ts) {
-  return new Date(ts).toLocaleString()
-}
-
-function makeLineData(days = 7) {
-  // generate days*24 hours of data
-  const hours = days * 24
-  return generateSensorData(hours)
+  if (!ts) return '—'
+  const d = new Date(ts)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleString()
 }
 
 export default function Analysis() {
   const [range, setRange] = useState(7)
-  const [sensorIdx, setSensorIdx] = useState(1)
+  const [data, setData] = useState([])
+  const [events, setEvents] = useState([])
 
-  const data = makeLineData(range)
-  const events = computeEvents(data, 1000)
+  useEffect(() => {
+    let mounted = true
+    async function load() {
+      try {
+        const rows = await api.getSeries(range)
+        if (!mounted) return
+        setData(Array.isArray(rows) ? rows : [])
+        const ev = await api.getEvents(1000)
+        setEvents(Array.isArray(ev) ? ev : (ev?.events ?? []))
+      } catch (err) {
+        // keep existing state on error
+      }
+    }
+    load()
+    return () => { mounted = false }
+  }, [range])
 
   // prepare scatter heatmap: map each point to {x: hour, y: dayIndex, co2}
   const scatter = data.map(d => {
-    const dt = new Date(d.timestamp)
-    return { x: dt.getHours(), y: Math.floor((new Date() - dt) / (24 * 60 * 60 * 1000)), co2: d.co2, ts: d.timestamp }
+    const ts = d.time || d.timestamp || d.window_end
+    const dt = new Date(ts)
+    const co2 = Number(d.co2 ?? d.value ?? d.co2_avg_ppm)
+    return { x: dt.getHours(), y: Math.floor((new Date() - dt) / (24 * 60 * 60 * 1000)), co2, ts }
   })
 
   return (
@@ -42,7 +56,7 @@ export default function Analysis() {
         </div>
         <div style={{ width: '100%', height: 320 }}>
           <ResponsiveContainer>
-            <ReLineChart data={data.map(d => ({ time: d.timestamp, CO2: d.co2 }))}>
+            <ReLineChart data={Array.isArray(data) ? data.map(d => ({ time: d.time || d.timestamp || d.window_end, CO2: (()=>{ const v = Number(d?.co2 ?? d?.value ?? d?.co2_avg_ppm); return Number.isFinite(v) ? v : null})() })) : []}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="time" tickFormatter={(t) => new Date(t).toLocaleDateString()} />
               <YAxis />
@@ -75,7 +89,7 @@ export default function Analysis() {
 
         <div className="card">
           <h3 className="font-semibold mb-2">Eventos (CO2 &gt; 1000 ppm)</h3>
-          <div className="text-sm text-slate-500 mb-2">Sensor: sensor-{sensorIdx}</div>
+          <div className="text-sm text-slate-500 mb-2">Sensor: sensor-1</div>
           <div className="overflow-auto">
             <table className="w-full text-left text-sm">
               <thead>

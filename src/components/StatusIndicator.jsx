@@ -11,7 +11,7 @@ export default function StatusIndicator({ co2 }) {
     <div className="flex items-center gap-3">
       <span className={`w-3 h-3 rounded-full ${color}`} />
       <div>
-        <div className="text-sm text-slate-600">Calidad del aire</div>
+        <div className="text-sm text-slate-600 dark:text-slate-300">Calidad del aire</div>
         <div className="font-semibold">{text} — {co2} ppm</div>
       </div>
     </div>

@@ -22,7 +22,7 @@ function Icon({ type }) {
 export default function MetricCard({ label, value, unit, type }) {
   return (
     <div className="card flex items-center gap-4">
-      <div className="p-3 rounded-lg bg-slate-100">
+      <div className="p-3 rounded-lg bg-slate-100 dark:bg-slate-700">
         <Icon type={type} />
       </div>
       <div>
