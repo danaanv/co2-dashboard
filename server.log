@@ -1,0 +1,12 @@
+
+> co2-dashboard@0.1.0 dev
+> vite
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+Port 5173 is in use, trying another one...
+
+  VITE v5.0.0  ready in 555 ms
+
+  ➜  Local:   http://localhost:5174/
+  ➜  Network: use --host to expose
+  ➜  press h + enter to show help

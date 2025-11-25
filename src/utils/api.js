@@ -9,9 +9,8 @@ export async function getReadings(limit = 20) {
     const data = await res.json()
     return data
   } catch (err) {
-    // fallback to mock data (last `limit` readings)
-    const generated = mock.generateMockData(24)
-    return mock.latestReadings(generated, limit).reverse()
+    // fallback: return empty array (no mock data)
+    return []
   }
 }
 
@@ -25,9 +24,8 @@ export async function getSeries(days = 7, from, to) {
     const data = await res.json()
     return data
   } catch (err) {
-    // fallback: use mock.generateMockData for `days * 24` hours
-    const hours = days * 24
-    return mock.generateMockData(hours)
+    // fallback: return empty array (no mock data)
+    return []
   }
 }
 
@@ -38,9 +36,8 @@ export async function getEvents(threshold = 1000) {
     const data = await res.json()
     return data.events || []
   } catch (err) {
-    // fallback to computing events from mock
-    const data = mock.generateMockData(24)
-    return mock.computeEvents(data, threshold)
+    // fallback: return empty array (no mock data)
+    return []
   }
 }
 

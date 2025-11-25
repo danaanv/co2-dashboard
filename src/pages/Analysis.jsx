@@ -20,7 +20,8 @@ export default function Analysis() {
       try {
         const rows = await api.getSeries(range)
         if (!mounted) return
-        setData(Array.isArray(rows) ? rows : [])
+        const safeRows = Array.isArray(rows) ? rows : []
+        setData(safeRows)
         const ev = await api.getEvents(1000)
         setEvents(Array.isArray(ev) ? ev : (ev?.events ?? []))
       } catch (err) {
@@ -44,6 +45,10 @@ export default function Analysis() {
   const avgCo2 = chartData.length > 0
     ? Math.round(chartData.reduce((sum, d) => sum + (d.CO2 || 0), 0) / chartData.length)
     : 0
+
+  // Table display state - show first 10, toggle to show all or less
+  const [showAll, setShowAll] = useState(false)
+  const displayed = showAll ? data : data.slice(0, 10)
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -163,6 +168,38 @@ export default function Analysis() {
             <strong>Interpretación:</strong> Cada celda representa una hora. El color indica el nivel de CO2 en esa hora.
             Más datos disponibles en los últimos {range} días.
           </div>
+        </div>
+      </div>
+
+      {/* Tendencia histórica table */}
+      <div className="card mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold">Tendencia histórica de CO2 - Tabla</h3>
+          <button onClick={() => setShowAll(!showAll)} className="px-3 py-1 rounded text-sm bg-slate-100 dark:bg-slate-700 hover:bg-slate-200">
+            {showAll ? `Ver menos (10)` : `Ver todos (${data.length})`}
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-slate-700">
+                <th className="text-left p-2">Fecha y hora</th>
+                <th className="text-right p-2">CO2 (ppm)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayed.map((row, idx) => {
+                const timestamp = row?.time ?? row?.timestamp ?? row?.window_end
+                const co2Value = Number(row?.co2 ?? row?.value ?? row?.co2_avg_ppm ?? NaN)
+                return (
+                  <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <td className="p-2">{formatDate(timestamp)}</td>
+                    <td className="text-right p-2">{Number.isFinite(co2Value) ? co2Value.toFixed(1) : '—'}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

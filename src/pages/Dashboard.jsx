@@ -8,6 +8,13 @@ import RecommendationCard from '../components/RecommendationCard'
 import { latestReadings, latest } from '../utils/mockData'
 import api from '../utils/api'
 
+function formatDate(ts) {
+  if (!ts) return '—'
+  const d = new Date(ts)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleString()
+}
+
 export default function Dashboard() {
   // data loaded from API (fallback to mock inside api.js)
   const [data, setData] = useState([])
@@ -18,7 +25,8 @@ export default function Dashboard() {
     let mounted = true
     async function load() {
       try {
-        const rows = await api.getSeries(2) // 48 hours
+        // Get last 30 days to ensure we get the most recent value even if it's old
+        const rows = await api.getSeries(30)
         // ensure rows is an array
         const safeRows = Array.isArray(rows) ? rows : []
         // expected shape: array with { time, value/co2 }
@@ -27,15 +35,16 @@ export default function Dashboard() {
           const timestamp = r?.time ?? r?.window_end ?? r?.timestamp ?? null
           const co2 = Number(r?.co2 ?? r?.value ?? r?.co2_avg_ppm ?? NaN)
           return { timestamp, co2: Number.isFinite(co2) ? co2 : null }
-        })
+        }).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)) // Sort newest first
+        
         if (!mounted) return
         setData(normalized)
-        const lastItem = normalized.length ? normalized[normalized.length - 1] : null
+        // Get the most recent value (first after sorting by newest)
+        const lastItem = normalized.length ? normalized[0] : null
         setLast(lastItem)
-        setLatest20(normalized.slice(-20).reverse())
+        setLatest20(normalized.slice(0, 20).reverse()) // Reverse to show oldest to newest
       } catch (err) {
-        // keep previous state on error; optionally log
-        // console.error('Failed loading series', err)
+        // keep previous state on error
       }
     }
     load()
@@ -47,35 +56,38 @@ export default function Dashboard() {
   const displayed = showAll ? latest20 : latest20.slice(0, 5)
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-4">
       <Header lastUpdate={last?.timestamp} />
 
-      {/* Main layout: left main column (CO2 current, quality, 24h chart) and right column with gauge+legend */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-start">
-        <div className="lg:col-span-2 flex flex-col items-center">
-          {/* CO2 current - centered */}
-          <div className="card w-full max-w-2xl text-center mb-4">
-            <div className="text-sm text-slate-500 dark:text-slate-300">CO2 actual</div>
-            <div className="text-6xl font-extrabold mt-2">{last?.co2 ?? '—'}<span className="text-2xl font-medium"> ppm</span></div>
-            <div className="mt-3 flex justify-center">
-              <StatusIndicator co2={last?.co2 ?? 0} />
-            </div>
+      {/* Compacted layout to fit in one screen */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+        {/* Left: Gauge */}
+        <div className="lg:col-span-1">
+          <GaugeChart value={last?.co2 ?? 0} />
+        </div>
+        {/* Right: CO2 Value + Recommendation + 24h chart */}
+        <div className="lg:col-span-2 flex flex-col gap-4">
+          {/* CO2 current */}
+          <div className="card text-center p-6">
+            <div className="text-xs text-slate-500 dark:text-slate-300 mb-1">CO2 actual</div>
+            <div className="text-4xl font-bold">{last?.co2 ?? '—'}<span className="text-lg"> ppm</span></div>
+            <div className="text-xs text-slate-400 mt-2">{formatDate(last?.timestamp)}</div>
           </div>
 
-          {/* Recommendation card */}
-          <div className="w-full max-w-2xl mb-4">
+          {/* Status indicator compact */}
+          <div className="card p-4">
+            <StatusIndicator co2={last?.co2 ?? 0} />
+          </div>
+
+          {/* Recommendation compact */}
+          <div>
             <RecommendationCard co2={last?.co2 ?? 0} />
           </div>
 
-          {/* 24h line chart below the status */}
-          <div className="w-full">
+          {/* 24h chart - taller to match gauge height */}
+          <div className="lg:min-h-[700px]">
             <LineChart data={data} />
           </div>
-        </div>
-
-        {/* Right column: Gauge with legend */}
-        <div className="lg:col-span-1 flex justify-center">
-          <GaugeChart value={last?.co2 ?? 0} />
         </div>
       </div>
     </div>

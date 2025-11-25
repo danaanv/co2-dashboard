@@ -13,16 +13,15 @@ export default function LineChart({ data }) {
   }))
 
   return (
-    <div className="card h-64">
-      <h3 className="mb-2 font-semibold">Últimas 24 horas</h3>
+    <div className="card h-48">
+      <h3 className="text-sm font-semibold mb-2">Últimas 24 horas</h3>
       <ResponsiveContainer width="100%" height="85%">
         <ReLineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="time" minTickGap={20} />
-          <YAxis />
+          <XAxis dataKey="time" minTickGap={20} tick={{ fontSize: 12 }} />
+          <YAxis tick={{ fontSize: 12 }} />
           <Tooltip />
-          <Legend />
-          <Line type="monotone" dataKey="CO2" stroke="#0ea5a4" dot={false} />
+          <Line type="monotone" dataKey="CO2" stroke="#0ea5a4" dot={false} isAnimationActive={false} />
         </ReLineChart>
       </ResponsiveContainer>
     </div>
